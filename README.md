@@ -9,7 +9,8 @@ Shareable test dApp for validating the `window.qubic` provider exposed by the Qu
 - `disconnect()`
 - `getAccount()`
 - `signMessage()` (plain text + hex payload examples)
-- `signTransaction()` (manual payload form)
+- `signTransaction()` (sign only, manual payload form)
+- `sendTransaction()` (sign + broadcast, with `targetTickOffset` and `tokenKey` support)
 - Provider events:
   - `accountChanged`
   - `disconnect`
@@ -38,11 +39,13 @@ Open `http://localhost:3000`.
 3. `sign message` with normal text
 4. `suspicious preset` then `sign message` (warning should appear in wallet)
 5. Fill `signTransaction` and approve/reject
-6. Switch account in the wallet and verify `accountChanged` appears in logs
-7. `disconnect` and verify disconnect event/logs
+6. Fill `sendTransaction` and approve (signs + broadcasts to network)
+7. Switch account in the wallet and verify `accountChanged` appears in logs
+8. `disconnect` and verify disconnect event/logs
 
 ## Notes
 
 - This app is intentionally simple and uses only `window.qubic` (no SDK wrappers).
 - It is SSR-safe for Next.js by detecting the provider only after mount.
-- `signTransaction()` here signs only; broadcasting is up to the dApp/backend.
+- `signTransaction()` signs only; broadcasting is up to the dApp/backend.
+- `sendTransaction()` signs and broadcasts in one step via the extension.

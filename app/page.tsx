@@ -27,6 +27,14 @@ type QubicProvider = {
     txBytesBase64: string;
     txBytesHex: string;
   }>;
+  sendTransaction: (params: unknown) => Promise<{
+    txId: string;
+    targetTick: number;
+    txBytesBase64: string;
+    txBytesHex: string;
+    networkTxId: string;
+    broadcast: unknown;
+  }>;
   on?: (event: "accountChanged" | "disconnect", cb: (payload: unknown) => void) => (() => void) | void;
   off?: (event: "accountChanged" | "disconnect", cb: (payload: unknown) => void) => void;
 };
@@ -72,6 +80,14 @@ export default function Home() {
   const [inputBytes, setInputBytes] = useState("");
   const [signMessageResult, setSignMessageResult] = useState<unknown>(null);
   const [signTxResult, setSignTxResult] = useState<unknown>(null);
+  const [sendTxResult, setSendTxResult] = useState<unknown>(null);
+  const [sendToIdentity, setSendToIdentity] = useState("");
+  const [sendAmount, setSendAmount] = useState("1");
+  const [sendTargetTick, setSendTargetTick] = useState("");
+  const [sendInputType, setSendInputType] = useState("0");
+  const [sendInputBytes, setSendInputBytes] = useState("");
+  const [targetTickOffset, setTargetTickOffset] = useState("");
+  const [tokenKey, setTokenKey] = useState("");
   const [busyAction, setBusyAction] = useState<string>("");
 
   const pushLog = useCallback((label: string, detail?: unknown) => {
@@ -170,6 +186,19 @@ export default function Home() {
     if (inputBytes.trim()) payload.inputBytes = inputBytes.trim();
     return payload;
   }, [amount, inputBytes, inputType, targetTick, toIdentity]);
+
+  const sendTxPayload = useMemo(() => {
+    const payload: Record<string, unknown> = {
+      toIdentity: sendToIdentity.trim(),
+      amount: sendAmount.trim(),
+      inputType: sendInputType.trim() === "" ? undefined : Number(sendInputType),
+    };
+    if (sendTargetTick.trim()) payload.targetTick = Number(sendTargetTick);
+    if (sendInputBytes.trim()) payload.inputBytes = sendInputBytes.trim();
+    if (targetTickOffset.trim()) payload.targetTickOffset = Number(targetTickOffset);
+    if (tokenKey.trim()) payload.tokenKey = tokenKey.trim();
+    return payload;
+  }, [sendToIdentity, sendAmount, sendInputType, sendTargetTick, sendInputBytes, targetTickOffset, tokenKey]);
 
   const suspiciousMessagePreset = () => {
     setMessage(
@@ -414,6 +443,90 @@ export default function Home() {
                 </pre>
               )}
             </div>
+
+            <div className={panelClass}>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-400">
+                sendTransaction
+              </h2>
+              <p className="mt-1 text-xs text-zinc-500">
+                Signs and broadcasts to the network.
+              </p>
+              <div className="mt-3 grid gap-3">
+                <input
+                  value={sendToIdentity}
+                  onChange={(e) => setSendToIdentity(e.target.value)}
+                  className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                  placeholder="Destination identity (60 uppercase chars)"
+                />
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <input
+                    value={sendAmount}
+                    onChange={(e) => setSendAmount(e.target.value)}
+                    className="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    placeholder="amount"
+                  />
+                  <input
+                    value={sendInputType}
+                    onChange={(e) => setSendInputType(e.target.value)}
+                    className="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    placeholder="inputType (0)"
+                  />
+                  <input
+                    value={sendTargetTick}
+                    onChange={(e) => setSendTargetTick(e.target.value)}
+                    className="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    placeholder="targetTick (optional)"
+                  />
+                </div>
+                <input
+                  value={sendInputBytes}
+                  onChange={(e) => setSendInputBytes(e.target.value)}
+                  className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                  placeholder="inputBytes (optional hex/base64)"
+                />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input
+                    value={targetTickOffset}
+                    onChange={(e) => setTargetTickOffset(e.target.value)}
+                    className="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    placeholder="targetTickOffset (1-120, default 12)"
+                  />
+                  <input
+                    value={tokenKey}
+                    onChange={(e) => setTokenKey(e.target.value)}
+                    className="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-cyan-400"
+                    placeholder="tokenKey (optional)"
+                  />
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={!providerReady || !!busyAction}
+                  onClick={() =>
+                    void runAction("sendTransaction", async () => {
+                      const result = await provider!.sendTransaction(sendTxPayload);
+                      setSendTxResult(result);
+                      pushLog("sendTransaction:ok", result);
+                    })
+                  }
+                  className="cursor-pointer rounded-xl bg-amber-400 px-3 py-2 text-sm font-semibold text-zinc-950 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {busyAction === "sendTransaction" ? "waiting approval..." : "send transaction"}
+                </button>
+              </div>
+              <details className="mt-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-2">
+                <summary className="cursor-pointer text-xs font-medium text-zinc-400">
+                  request payload preview
+                </summary>
+                <pre className={`${preClass} text-zinc-400`}>{safeStringify(sendTxPayload)}</pre>
+              </details>
+              {sendTxResult !== null && (
+                <pre className={`${preClass} text-zinc-300`}>
+                  {safeStringify(sendTxResult)}
+                </pre>
+              )}
+            </div>
           </div>
 
           <aside className="min-w-0 space-y-4 xl:sticky xl:top-4">
@@ -426,7 +539,8 @@ export default function Home() {
                 <li>2. Switch account in wallet and verify event log</li>
                 <li>3. Try sign message (normal + suspicious preset)</li>
                 <li>4. Try sign transaction with valid destination</li>
-                <li>5. Test reject / wrong passphrase / watch-only flows</li>
+                <li>5. Try send transaction (signs + broadcasts)</li>
+                <li>6. Test reject / wrong passphrase / watch-only flows</li>
               </ul>
             </div>
 
