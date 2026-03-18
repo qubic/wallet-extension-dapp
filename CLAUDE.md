@@ -17,8 +17,8 @@ Test dApp for validating the `window.qubic` provider exposed by the Qubic Wallet
 
 ```bash
 bun install        # install dependencies
-bun dev            # start dev server at http://localhost:3000
-bun run build      # production build
+bun dev            # start dev server at http://localhost:3000/wallet-extension-dapp
+bun run build      # production build (static export to ./out)
 bun run lint       # run ESLint (flat config, next/core-web-vitals + next/typescript)
 ```
 
