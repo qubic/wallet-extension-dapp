@@ -1,6 +1,6 @@
 # Qubic Wallet dApp Test
 
-Shareable test dApp for validating the `window.qubic` provider exposed by the Qubic Wallet browser extension.
+Shareable test dApp for validating the `window.qubic` provider exposed by the [Qubic Wallet browser extension](https://github.com/qubic/wallet-extension).
 
 ## What it tests
 
@@ -16,14 +16,20 @@ Shareable test dApp for validating the `window.qubic` provider exposed by the Qu
   - `disconnect`
 - Runtime logs and error responses
 
+## Live version
+
+Deployed via GitHub Pages at: https://qubic.github.io/wallet-extension-dapp/
+
 ## Run locally
+
+Requires Node.js >= 20.9.0.
 
 ```bash
 bun install
 bun dev
 ```
 
-Open `http://localhost:3000`.
+Open `http://localhost:3000/wallet-extension-dapp`.
 
 ## Before testing
 
